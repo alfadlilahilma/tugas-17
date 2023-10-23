@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Produk</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Data Produk</h2>
+        <a href="tambah_produk.php" class="btn btn-primary">Tambah Produk</a>
+        <br><br>
+        <form method="post" action="index.html">
+            <input type="text" name="search" placeholder="Cari Produk">
+            <button type="submit" class="btn btn-secondary">Cari</button>
+        </form>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nama Produk</th>
+                    <th>Harga</th>
+                    <th>Stok</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                include 'koneksi.php';
+
+                $search = isset($_POST['search']) ? $_POST['search'] : '';
+
+                // Menampilkan data dengan paginasi
+                $results_per_page = 10; // Jumlah hasil per halaman
+                $query = "SELECT * FROM produk WHERE nama_produk LIKE '%$search'";
+                $result = $conn->query($query);
+
+                $total_results = $result->num_rows;
+                $total_pages = ceil($total_results / $results_per_page);
+
+                // Ambil halaman saat ini dari URL
+                $current_page = isset($_GET['page']) ? $_GET['page'] : 1;
+
+                // Hitung offset
+                $offset = ($current_page - 1) * $results_per_page;
+
+                // Query dengan LIMIT dan OFFSET
+                $query = "SELECT * FROM produk 
+                          WHERE nama_produk LIKE '%$search'
+                          LIMIT $results_per_page
+                          OFFSET $offset";
+                $result = $conn->query($query);
+
+                while ($row = $result->fetch_assoc()) {
+                    echo "<tr>";
+                    echo "<td>" . $row['id'] . "</td>";
+                    echo "<td>" . $row['nama_produk'] . "</td>";
+                    echo "<td>" . $row['harga'] . "</td>";
+                    echo "<td>" . $row['stok'] . "</td>";
+                    echo "<td>
+                        <a href='edit_produk.php?id=" . $row['id'] . "' class='btn btn-warning'>Edit</a>
+                        <a href='hapus_produk.php?id=" . $row['id'] . "' class='btn btn-danger'>Hapus</a>
+                    </td>";
+                    echo "</tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+
+        <ul class="pagination">
+            <?php
+            for ($page = 1; $page <= $total_pages; $page++) {
+                echo "<li class='page-item " . ($page == $current_page ? 'active' : '') . "'><a class='page-link' href='index.html?page=$page'>$page</a></li>";
+            }
+            ?>
+        </ul>
+    </div>
+</body>
+</html>
